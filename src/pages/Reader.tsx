@@ -1,57 +1,80 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Settings, ChevronLeft, ChevronRight, List } from 'lucide-react';
-import { useNovelStore } from '@/stores/novelStore';
-import { ReadingMode } from '@/types/novel';
+import { useNovelDetails } from '@/hooks/useNovels';
+
+type ReadingMode = 'vertical' | 'horizontal';
 
 const Reader = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const {
-    novels,
-    selectedLanguage,
-    readingMode,
-    setReadingMode,
-    currentChapter,
-    setCurrentChapter,
-  } = useNovelStore();
+  
+  const { novel, chapters, loading, error } = useNovelDetails(id || '');
+  const language = (searchParams.get('lang') as 'en' | 'id') || 'en';
+  const chapterNumber = parseInt(searchParams.get('chapter') || '1', 10);
 
-  const novel = novels.find((n) => n.id === id);
+  const [readingMode, setReadingMode] = useState<ReadingMode>('vertical');
   const [showSettings, setShowSettings] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [currentChapter]);
-
-  if (!novel) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Novel not found</p>
-      </div>
-    );
-  }
-
-  const chapter = novel.chapters[currentChapter];
-  const content = chapter?.content[selectedLanguage] || chapter?.content.en || '';
+  const currentChapterIndex = chapters.findIndex((ch) => ch.number === chapterNumber);
+  const chapter = chapters[currentChapterIndex];
   
+  // Get content based on language
+  const content = language === 'id' 
+    ? (chapter?.content_id || chapter?.content_en || '') 
+    : (chapter?.content_en || '');
+
   // Split content into pages for horizontal reading
   const paragraphs = content.split('\n\n').filter(Boolean);
   const pages = readingMode === 'horizontal' ? paragraphs : [content];
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [chapterNumber, language]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !novel || !chapter) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Chapter not found</p>
+          <button
+            onClick={() => navigate(`/novel/${id}`)}
+            className="text-primary hover:underline"
+          >
+            Go back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const goToNextChapter = () => {
-    if (currentChapter < novel.chapters.length - 1) {
-      setCurrentChapter(currentChapter + 1);
+    if (currentChapterIndex < chapters.length - 1) {
+      const nextChapter = chapters[currentChapterIndex + 1];
+      navigate(`/read/${id}?lang=${language}&chapter=${nextChapter.number}`);
       setCurrentPage(0);
       window.scrollTo(0, 0);
     }
   };
 
   const goToPrevChapter = () => {
-    if (currentChapter > 0) {
-      setCurrentChapter(currentChapter - 1);
+    if (currentChapterIndex > 0) {
+      const prevChapter = chapters[currentChapterIndex - 1];
+      navigate(`/read/${id}?lang=${language}&chapter=${prevChapter.number}`);
       setCurrentPage(0);
       window.scrollTo(0, 0);
     }
@@ -69,7 +92,6 @@ const Reader = () => {
 
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
-        // Swipe left - next page/chapter
         if (readingMode === 'horizontal') {
           if (currentPage < pages.length - 1) {
             setCurrentPage(currentPage + 1);
@@ -78,7 +100,6 @@ const Reader = () => {
           }
         }
       } else {
-        // Swipe right - prev page/chapter
         if (readingMode === 'horizontal') {
           if (currentPage > 0) {
             setCurrentPage(currentPage - 1);
@@ -104,7 +125,7 @@ const Reader = () => {
           </button>
           <div className="text-center flex-1 min-w-0 px-2">
             <p className="text-xs text-muted-foreground truncate">
-              Chapter {chapter?.number}: {chapter?.title}
+              Chapter {chapter.number}: {chapter.title}
             </p>
           </div>
           <button
@@ -146,7 +167,7 @@ const Reader = () => {
               </button>
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              Language: {selectedLanguage === 'en' ? '🇬🇧 English' : '🇮🇩 Indonesia'}
+              Language: {language === 'en' ? '🇬🇧 English' : '🇮🇩 Indonesia'}
             </p>
           </div>
         </div>
@@ -154,15 +175,13 @@ const Reader = () => {
 
       {/* Content */}
       <div
-        ref={containerRef}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={`container px-4 py-6 ${
-          readingMode === 'horizontal' ? 'page-container flex items-start' : ''
+          readingMode === 'horizontal' ? 'min-h-[calc(100vh-120px)] flex items-start' : ''
         }`}
       >
         {readingMode === 'vertical' ? (
-          // Vertical Scroll Mode
           <div className="prose prose-invert max-w-none">
             {paragraphs.map((para, index) => (
               <p key={index} className="text-foreground/90 leading-relaxed mb-4 text-sm">
@@ -171,22 +190,22 @@ const Reader = () => {
             ))}
             
             {/* Chapter Break */}
-            <div className="chapter-break">
+            <div className="py-8 flex items-center justify-center border-t border-b border-border/30 my-8">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-3">
-                  End of Chapter {chapter?.number}
+                  End of Chapter {chapter.number}
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={goToPrevChapter}
-                    disabled={currentChapter === 0}
+                    disabled={currentChapterIndex === 0}
                     className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
                     onClick={goToNextChapter}
-                    disabled={currentChapter >= novel.chapters.length - 1}
+                    disabled={currentChapterIndex >= chapters.length - 1}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     Next Chapter
@@ -196,7 +215,6 @@ const Reader = () => {
             </div>
           </div>
         ) : (
-          // Horizontal Flip Mode
           <div className="w-full animate-fade-in" key={currentPage}>
             <p className="text-foreground/90 leading-relaxed text-sm">
               {pages[currentPage]}
@@ -217,7 +235,7 @@ const Reader = () => {
                   goToPrevChapter();
                 }
               }}
-              disabled={currentPage === 0 && currentChapter === 0}
+              disabled={currentPage === 0 && currentChapterIndex === 0}
               className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -228,7 +246,7 @@ const Reader = () => {
                 Page {currentPage + 1} of {pages.length}
               </p>
               <div className="flex gap-1 mt-1 justify-center">
-                {pages.map((_, i) => (
+                {pages.slice(0, 10).map((_, i) => (
                   <div
                     key={i}
                     className={`w-1.5 h-1.5 rounded-full transition-colors ${
@@ -236,6 +254,7 @@ const Reader = () => {
                     }`}
                   />
                 ))}
+                {pages.length > 10 && <span className="text-xs text-muted-foreground">...</span>}
               </div>
             </div>
             
@@ -247,7 +266,7 @@ const Reader = () => {
                   goToNextChapter();
                 }
               }}
-              disabled={currentPage >= pages.length - 1 && currentChapter >= novel.chapters.length - 1}
+              disabled={currentPage >= pages.length - 1 && currentChapterIndex >= chapters.length - 1}
               className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
               <ChevronRight className="w-6 h-6" />

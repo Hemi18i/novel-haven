@@ -1,27 +1,48 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Book, Languages } from 'lucide-react';
-import { useNovelStore } from '@/stores/novelStore';
+import { ArrowLeft, Book, Languages, Eye } from 'lucide-react';
+import { useNovelDetails } from '@/hooks/useNovels';
 import { StarBackground } from '@/components/StarBackground';
-import { Language } from '@/types/novel';
 
 const NovelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { novels, setSelectedLanguage, selectedLanguage } = useNovelStore();
+  const { novel, chapters, loading, error } = useNovelDetails(id || '');
+  const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'id'>('en');
 
-  const novel = novels.find((n) => n.id === id);
-
-  if (!novel) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Novel not found</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">جاري التحميل...</p>
+        </div>
       </div>
     );
   }
 
-  const handleReadClick = (lang: Language) => {
+  if (error || !novel) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Novel not found</p>
+          <button
+            onClick={() => navigate('/')}
+            className="text-primary hover:underline"
+          >
+            Go back home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const hasEnglish = chapters.some((ch) => ch.content_en || ch.epub_en_url);
+  const hasIndonesian = chapters.some((ch) => ch.content_id || ch.epub_id_url);
+
+  const handleReadClick = (lang: 'en' | 'id') => {
     setSelectedLanguage(lang);
-    navigate(`/read/${id}`);
+    navigate(`/read/${id}?lang=${lang}`);
   };
 
   return (
@@ -46,7 +67,7 @@ const NovelDetail = () => {
           <div className="flex gap-4 mb-6">
             <div className="w-32 shrink-0">
               <img
-                src={novel.cover}
+                src={novel.cover_url || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop'}
                 alt={novel.title}
                 className="w-full aspect-[2/3] object-cover rounded-lg shadow-lg"
               />
@@ -70,9 +91,15 @@ const NovelDetail = () => {
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Book className="w-4 h-4" />
-                <span>{novel.chapters.length} Chapters</span>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Book className="w-4 h-4" />
+                  <span>{chapters.length} Chapters</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  <span>{novel.view_count} Views</span>
+                </div>
               </div>
             </div>
           </div>
@@ -88,14 +115,14 @@ const NovelDetail = () => {
           )}
 
           {/* Language Selection */}
-          <div className="bg-card border border-border rounded-xl p-4">
+          <div className="bg-card border border-border rounded-xl p-4 mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Languages className="w-5 h-5 text-primary" />
               <h3 className="font-semibold">Choose Language</h3>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {novel.languages.includes('en') && (
+              {(hasEnglish || chapters.length > 0) && (
                 <button
                   onClick={() => handleReadClick('en')}
                   className={`flex items-center justify-center gap-2 py-4 rounded-xl font-semibold transition-all ${
@@ -107,7 +134,7 @@ const NovelDetail = () => {
                   🇬🇧 English
                 </button>
               )}
-              {novel.languages.includes('id') && (
+              {hasIndonesian && (
                 <button
                   onClick={() => handleReadClick('id')}
                   className={`flex items-center justify-center gap-2 py-4 rounded-xl font-semibold transition-all ${
@@ -123,16 +150,13 @@ const NovelDetail = () => {
           </div>
 
           {/* Chapter List */}
-          <div className="mt-6">
+          <div>
             <h3 className="font-semibold mb-3">Chapters</h3>
             <div className="space-y-2">
-              {novel.chapters.map((chapter) => (
+              {chapters.map((chapter) => (
                 <button
                   key={chapter.id}
-                  onClick={() => {
-                    useNovelStore.getState().setCurrentChapter(chapter.number - 1);
-                    navigate(`/read/${id}`);
-                  }}
+                  onClick={() => navigate(`/read/${id}?lang=${selectedLanguage}&chapter=${chapter.number}`)}
                   className="w-full flex items-center justify-between p-3 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors text-left"
                 >
                   <div>
@@ -144,6 +168,12 @@ const NovelDetail = () => {
                   <ArrowLeft className="w-4 h-4 rotate-180 text-muted-foreground" />
                 </button>
               ))}
+              
+              {chapters.length === 0 && (
+                <p className="text-center py-8 text-muted-foreground">
+                  No chapters available yet
+                </p>
+              )}
             </div>
           </div>
         </main>
