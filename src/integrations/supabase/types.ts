@@ -61,6 +61,35 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          novel_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          novel_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          novel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_novel_id_fkey"
+            columns: ["novel_id"]
+            isOneToOne: false
+            referencedRelation: "novels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       novels: {
         Row: {
           author: string | null

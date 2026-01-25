@@ -1,14 +1,31 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Book, Languages, Eye } from 'lucide-react';
+import { ArrowLeft, Book, Languages, Eye, Heart } from 'lucide-react';
 import { useNovelDetails } from '@/hooks/useNovels';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useAuth } from '@/hooks/useAuth';
 import { StarBackground } from '@/components/StarBackground';
 
 const NovelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { novel, chapters, loading, error } = useNovelDetails(id || '');
+  const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'id'>('en');
+  const [togglingFavorite, setTogglingFavorite] = useState(false);
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    if (!id) return;
+    
+    setTogglingFavorite(true);
+    await toggleFavorite(id);
+    setTogglingFavorite(false);
+  };
 
   if (loading) {
     return (
@@ -39,6 +56,7 @@ const NovelDetail = () => {
 
   const hasEnglish = chapters.some((ch) => ch.content_en || ch.epub_en_url);
   const hasIndonesian = chapters.some((ch) => ch.content_id || ch.epub_id_url);
+  const isNovelFavorite = id ? isFavorite(id) : false;
 
   const handleReadClick = (lang: 'en' | 'id') => {
     setSelectedLanguage(lang);
@@ -51,14 +69,28 @@ const NovelDetail = () => {
       <div className="relative z-10">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
-          <div className="container flex items-center h-14 px-4">
+          <div className="container flex items-center justify-between h-14 px-4">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="ml-2 font-semibold truncate">{novel.title}</h1>
+            </div>
             <button
-              onClick={() => navigate(-1)}
-              className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={handleToggleFavorite}
+              disabled={togglingFavorite}
+              className={`p-2 rounded-lg transition-colors ${
+                isNovelFavorite
+                  ? 'text-red-500 bg-red-500/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+              title={isNovelFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <Heart className={`w-5 h-5 ${isNovelFavorite ? 'fill-current' : ''}`} />
             </button>
-            <h1 className="ml-2 font-semibold truncate">{novel.title}</h1>
           </div>
         </header>
 
