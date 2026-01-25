@@ -10,6 +10,7 @@ import NovelDetail from "./pages/NovelDetail";
 import Reader from "./pages/Reader";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,14 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/novel/:id" element={<NovelDetail />} />
             <Route path="/read/:id" element={<Reader />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin"
               element={
