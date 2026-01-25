@@ -10,6 +10,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
 
+  // Show loading while auth is being determined
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
