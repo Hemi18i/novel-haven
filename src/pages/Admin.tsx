@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Save, X, Book, Upload, FileText, LogOut } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, X, Book, Upload, FileText, LogOut, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { StarBackground } from '@/components/StarBackground';
+import { EpubImporter } from '@/components/admin/EpubImporter';
+import { ChaptersList } from '@/components/admin/ChaptersList';
 
 interface Novel {
   id: string;
@@ -35,6 +37,8 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [isAddingNovel, setIsAddingNovel] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState<string | null>(null);
+  const [showEpubImporter, setShowEpubImporter] = useState<string | null>(null);
+  const [chaptersRefresh, setChaptersRefresh] = useState(0);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingEpub, setUploadingEpub] = useState<{ novelId: string; lang: 'en' | 'id' } | null>(null);
 
@@ -390,9 +394,22 @@ const Admin = () => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <button
-                      onClick={() => setShowChapterForm(showChapterForm === novel.id ? null : novel.id)}
+                      onClick={() => {
+                        setShowEpubImporter(showEpubImporter === novel.id ? null : novel.id);
+                        setShowChapterForm(null);
+                      }}
+                      className="p-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/80"
+                      title="Import EPUB"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowChapterForm(showChapterForm === novel.id ? null : novel.id);
+                        setShowEpubImporter(null);
+                      }}
                       className="p-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30"
-                      title="Add Chapter"
+                      title="Add Chapter Manually"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -405,6 +422,20 @@ const Admin = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* EPUB Importer */}
+                {showEpubImporter === novel.id && (
+                  <div className="mt-4 pt-4 border-t border-border animate-fade-in">
+                    <EpubImporter
+                      novelId={novel.id}
+                      novelTitle={novel.title}
+                      onImportComplete={() => setChaptersRefresh(prev => prev + 1)}
+                    />
+                  </div>
+                )}
+
+                {/* Chapters List */}
+                <ChaptersList novelId={novel.id} refreshTrigger={chaptersRefresh} />
 
                 {/* Add Chapter Form */}
                 {showChapterForm === novel.id && (
