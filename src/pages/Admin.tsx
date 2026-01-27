@@ -453,6 +453,41 @@ const Admin = () => {
                         />
                       </div>
 
+                      {/* EPUB Upload Section */}
+                      <div className="border border-border rounded-lg p-3 bg-secondary/30">
+                        <h5 className="text-xs font-semibold mb-2 text-muted-foreground">Upload EPUB Files (Optional)</h5>
+                        <div className="grid grid-cols-2 gap-3">
+                          <label className="flex items-center justify-center gap-2 px-3 py-2 bg-secondary border border-border rounded-lg cursor-pointer hover:bg-secondary/80 text-sm">
+                            {uploadingEpub?.novelId === novel.id && uploadingEpub?.lang === 'en' ? (
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Upload className="w-4 h-4" />
+                            )}
+                            <span>EPUB (EN)</span>
+                            <input
+                              type="file"
+                              accept=".epub"
+                              onChange={(e) => handleEpubUpload(e, novel.id, newChapter.number, 'en')}
+                              className="hidden"
+                            />
+                          </label>
+                          <label className="flex items-center justify-center gap-2 px-3 py-2 bg-secondary border border-border rounded-lg cursor-pointer hover:bg-secondary/80 text-sm">
+                            {uploadingEpub?.novelId === novel.id && uploadingEpub?.lang === 'id' ? (
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Upload className="w-4 h-4" />
+                            )}
+                            <span>EPUB (ID)</span>
+                            <input
+                              type="file"
+                              accept=".epub"
+                              onChange={(e) => handleEpubUpload(e, novel.id, newChapter.number, 'id')}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
                       <button
                         onClick={() => handleAddChapter(novel.id)}
                         disabled={!newChapter.title}
