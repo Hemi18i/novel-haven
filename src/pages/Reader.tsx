@@ -27,9 +27,16 @@ const Reader = () => {
     ? (chapter?.content_id || chapter?.content_en || '') 
     : (chapter?.content_en || '');
 
-  // Split content into pages for horizontal reading
-  const paragraphs = content.split('\n\n').filter(Boolean);
-  const pages = readingMode === 'horizontal' ? paragraphs : [content];
+  // Extract paragraphs from HTML for horizontal reading
+  const extractParagraphs = (html: string): string[] => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const paragraphs = doc.querySelectorAll('p');
+    return Array.from(paragraphs).map(p => p.outerHTML);
+  };
+
+  const htmlParagraphs = extractParagraphs(content);
+  const pages = readingMode === 'horizontal' ? htmlParagraphs : [content];
 
   useEffect(() => {
     setCurrentPage(0);
@@ -182,12 +189,11 @@ const Reader = () => {
         }`}
       >
         {readingMode === 'vertical' ? (
-          <div className="prose prose-invert max-w-none">
-            {paragraphs.map((para, index) => (
-              <p key={index} className="text-foreground/90 leading-relaxed mb-4 text-sm">
-                {para}
-              </p>
-            ))}
+          <div className="max-w-none">
+            <div 
+              className="chapter-content"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
             
             {/* Chapter Break */}
             <div className="py-8 flex items-center justify-center border-t border-b border-border/30 my-8">
@@ -216,9 +222,10 @@ const Reader = () => {
           </div>
         ) : (
           <div className="w-full animate-fade-in" key={currentPage}>
-            <p className="text-foreground/90 leading-relaxed text-sm">
-              {pages[currentPage]}
-            </p>
+            <div 
+              className="chapter-content"
+              dangerouslySetInnerHTML={{ __html: pages[currentPage] || '' }}
+            />
           </div>
         )}
       </div>
