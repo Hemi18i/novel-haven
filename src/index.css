@@ -135,6 +135,46 @@
   .admin-card {
     @apply bg-card border border-border rounded-xl p-4;
   }
+
+  /* EPUB Chapter Content Styles */
+  .chapter-content {
+    @apply text-foreground/90 leading-relaxed;
+  }
+
+  .chapter-content p {
+    @apply mb-4 text-sm leading-7;
+  }
+
+  .chapter-content em,
+  .chapter-content i {
+    @apply italic;
+  }
+
+  .chapter-content strong,
+  .chapter-content b {
+    @apply font-bold;
+  }
+
+  .chapter-content .chapter-title,
+  .chapter-content h2 {
+    @apply text-xl font-bold mb-6 text-center text-foreground;
+  }
+
+  .chapter-content .chapter-ugc {
+    @apply space-y-4;
+  }
+
+  .chapter-content .chapter-title-wrap {
+    @apply mb-8;
+  }
+
+  .chapter-content img {
+    @apply max-w-full h-auto rounded-lg my-4 mx-auto;
+  }
+
+  .chapter-content a {
+    @apply text-primary hover:underline;
+  }
 }
 
 @layer utilities {
