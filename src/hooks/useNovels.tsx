@@ -89,11 +89,17 @@ export function useNovelDetails(id: string) {
           if (chaptersError) throw chaptersError;
           setChapters(chaptersData || []);
 
-          // Increment view count
-          await supabase
-            .from('novels')
-            .update({ view_count: (novelData.view_count || 0) + 1 })
-            .eq('id', id);
+          // Increment view count only once per session per novel
+          const viewedKey = `novel_viewed_${id}`;
+          const hasViewed = sessionStorage.getItem(viewedKey);
+          
+          if (!hasViewed) {
+            await supabase
+              .from('novels')
+              .update({ view_count: (novelData.view_count || 0) + 1 })
+              .eq('id', id);
+            sessionStorage.setItem(viewedKey, 'true');
+          }
         }
       } catch (err: any) {
         setError(err.message);
