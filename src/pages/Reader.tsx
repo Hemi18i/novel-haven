@@ -125,7 +125,7 @@ const Reader = () => {
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border/50">
         <div className="container flex items-center justify-between h-12 px-4">
           <button
-            onClick={() => navigate(`/novel/${id}`)}
+            onClick={() => navigate(`/novel/${id}`, { replace: true })}
             className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
