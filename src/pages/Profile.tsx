@@ -4,6 +4,7 @@ import { ArrowLeft, User, Lock, Heart, LogOut, Eye, EyeOff, Trash2 } from 'lucid
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { StarBackground } from '@/components/StarBackground';
+import { BottomNav } from '@/components/BottomNav';
 
 interface FavoriteNovel {
   id: string;
@@ -142,7 +143,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen pb-20 relative">
       <StarBackground />
       <div className="relative z-10">
         {/* Header */}
@@ -320,6 +321,7 @@ const Profile = () => {
           )}
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 };
