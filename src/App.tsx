@@ -11,6 +11,8 @@ import Reader from "./pages/Reader";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Bookmarks from "./pages/Bookmarks";
+import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +27,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/novel/:id" element={<NovelDetail />} />
             <Route path="/read/:id" element={<Reader />} />
             <Route
