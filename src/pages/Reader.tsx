@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Settings, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { useNovelDetails } from '@/hooks/useNovels';
+import { BottomNav } from '@/components/BottomNav';
 
 type ReadingMode = 'vertical' | 'horizontal';
 
@@ -120,7 +121,7 @@ const Reader = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border/50">
         <div className="container flex items-center justify-between h-12 px-4">
@@ -185,7 +186,9 @@ const Reader = () => {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={`container px-4 py-6 ${
-          readingMode === 'horizontal' ? 'min-h-[calc(100vh-120px)] flex items-start' : ''
+          readingMode === 'horizontal'
+            ? 'min-h-[calc(100vh-120px)] flex items-start pb-40'
+            : 'pb-24'
         }`}
       >
         {readingMode === 'vertical' ? (
@@ -232,7 +235,7 @@ const Reader = () => {
 
       {/* Bottom Navigation for Horizontal Mode */}
       {readingMode === 'horizontal' && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/50 py-3">
+        <div className="fixed bottom-16 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/50 py-3">
           <div className="container flex items-center justify-between px-4">
             <button
               onClick={() => {
@@ -281,6 +284,9 @@ const Reader = () => {
           </div>
         </div>
       )}
+
+      {/* Global bottom navigation */}
+      <BottomNav />
     </div>
   );
 };

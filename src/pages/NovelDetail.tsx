@@ -73,13 +73,7 @@ const NovelDetail = () => {
           <div className="container flex items-center justify-between h-14 px-4">
             <div className="flex items-center">
               <button
-                onClick={() => {
-                  if (window.history.length > 1) {
-                    navigate(-1);
-                  } else {
-                    navigate('/');
-                  }
-                }}
+                onClick={() => navigate('/', { replace: true })}
                 className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
