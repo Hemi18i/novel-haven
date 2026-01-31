@@ -4,6 +4,7 @@ import { Sparkles, Crown, Flame, ChevronRight, Search, User } from 'lucide-react
 import { useNovels } from '@/hooks/useNovels';
 import { useAuth } from '@/hooks/useAuth';
 import { StarBackground } from '@/components/StarBackground';
+import { BottomNav } from '@/components/BottomNav';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -56,7 +57,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen pb-6 relative">
+    <div className="min-h-screen pb-20 relative">
       <StarBackground />
       <div className="relative z-10">
         {/* Header */}
@@ -278,6 +279,7 @@ const Index = () => {
           )}
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 };
