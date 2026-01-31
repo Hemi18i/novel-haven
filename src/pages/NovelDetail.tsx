@@ -5,6 +5,7 @@ import { useNovelDetails } from '@/hooks/useNovels';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/hooks/useAuth';
 import { StarBackground } from '@/components/StarBackground';
+import { BottomNav } from '@/components/BottomNav';
 
 const NovelDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -64,7 +65,7 @@ const NovelDetail = () => {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen pb-20 relative">
       <StarBackground />
       <div className="relative z-10">
         {/* Header */}
@@ -216,6 +217,7 @@ const NovelDetail = () => {
           </div>
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 };
