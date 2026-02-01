@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Sparkles, Crown, Flame, ChevronRight, Search, User } from 'lucide-react';
 import { useNovels } from '@/hooks/useNovels';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,15 +7,10 @@ import { StarBackground } from '@/components/StarBackground';
 import { BottomNav } from '@/components/BottomNav';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
 const Index = () => {
   const { novels, loading } = useNovels();
   const { user } = useAuth();
   const [mainTab, setMainTab] = useState<'new' | 'popular'>('new');
-  const [subTab, setSubTab] = useState<'latest' | 'popular'>('latest');
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
-  const [showAlphabet, setShowAlphabet] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
@@ -32,18 +27,7 @@ const Index = () => {
 
   const officialNovels = novels.filter((n) => n.is_official);
 
-  const latestUpdated = novels
-    .filter((n) => !searchQuery || n.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 9);
-
   const displayedNovels = mainTab === 'new' ? newArrivals : popularNovels;
-  const bottomNovels = subTab === 'latest' ? latestUpdated : popularNovels;
-
-  // Filter by alphabet
-  const filteredBottomNovels = selectedLetter
-    ? bottomNovels.filter((n) => n.title.toUpperCase().startsWith(selectedLetter))
-    : bottomNovels;
 
   if (loading) {
     return (
@@ -185,98 +169,21 @@ const Index = () => {
             </div>
           )}
 
-          {/* Sub Tabs - Latest Update / Popular */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSubTab('latest')}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                  subTab === 'latest'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border text-muted-foreground'
-                }`}
-              >
-                LATEST UPDATE
-              </button>
-              <button
-                onClick={() => setSubTab('popular')}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                  subTab === 'popular'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border text-muted-foreground'
-                }`}
-              >
-                POPULAR
-              </button>
+          {/* Browse by Letter */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-wide">Browse by Letter</h2>
+              <Link to="/catalog/A" className="text-xs text-accent hover:underline flex items-center">
+                VIEW ALL <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
-            <button
-              onClick={() => setShowAlphabet(!showAlphabet)}
-              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                showAlphabet ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
-              }`}
+            <Link
+              to="/catalog/A"
+              className="w-full py-3 px-4 rounded-xl bg-card border border-border/50 hover:border-primary/50 hover:bg-card/80 transition-all font-bold text-sm uppercase tracking-wider text-center"
             >
               A-Z
-            </button>
+            </Link>
           </div>
-
-          {/* Alphabet Filter */}
-          {showAlphabet && (
-            <div className="grid grid-cols-9 gap-1.5 mb-4 animate-fade-in">
-              <button
-                onClick={() => setSelectedLetter(null)}
-                className={`aspect-square rounded-lg text-xs font-bold flex items-center justify-center transition-all ${
-                  !selectedLetter
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border text-muted-foreground hover:bg-primary/20'
-                }`}
-              >
-                ALL
-              </button>
-              {alphabet.map((letter) => (
-                <button
-                  key={letter}
-                  onClick={() => setSelectedLetter(selectedLetter === letter ? null : letter)}
-                  className={`aspect-square rounded-lg text-xs font-bold flex items-center justify-center transition-all ${
-                    selectedLetter === letter
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-card border border-border text-muted-foreground hover:bg-primary/20'
-                  }`}
-                >
-                  {letter}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Bottom Grid */}
-          <div className="grid grid-cols-3 gap-3">
-            {filteredBottomNovels.map((novel, index) => (
-              <Link
-                key={novel.id}
-                to={`/novel/${novel.id}`}
-                className="relative aspect-[2/3] rounded-lg overflow-hidden group animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <img
-                  src={novel.cover_url || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop'}
-                  alt={novel.title}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
-                  <span className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
-                    READ
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {filteredBottomNovels.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No novels found</p>
-            </div>
-          )}
         </main>
       </div>
       <BottomNav />

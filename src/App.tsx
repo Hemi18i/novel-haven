@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Bookmarks from "./pages/Bookmarks";
 import SearchPage from "./pages/SearchPage";
+import CatalogPage from "./pages/CatalogPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/bookmarks" element={<Bookmarks />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/catalog/:letter" element={<CatalogPage />} />
             <Route path="/novel/:id" element={<NovelDetail />} />
             <Route path="/read/:id" element={<Reader />} />
             <Route
